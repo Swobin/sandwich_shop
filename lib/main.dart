@@ -85,7 +85,6 @@ class _OrderScreenState extends State<OrderScreen> {
                 onSelectionChanged: _onSandwichSelected,
               ),
             ),
-            // Fixed Row with StyledButton
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
