@@ -15,17 +15,6 @@ class App extends StatelessWidget {
         appBar: AppBar(title: const Text('Sandwich Counter')),
         body: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  OrderItemDisplay(3, 'BLT'),
-                  OrderItemDisplay(5, 'Club'),
-                  OrderItemDisplay(2, 'Veggie'),
-                ],
-              ),
-            ),
             Expanded(
               child: Center(
                 child: Container(
@@ -33,6 +22,14 @@ class App extends StatelessWidget {
                   color: Colors.blue[600],
                   width: 400,
                   height: 250,
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      OrderItemDisplay(3, 'BLT'),
+                      OrderItemDisplay(5, 'Club'),
+                      OrderItemDisplay(2, 'Veggie'),
+                    ],
+                  ),
                 ),
               ),
             ),
