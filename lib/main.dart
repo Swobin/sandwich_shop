@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:sandwich_shop/views/app_styles.dart';
 
 void main() {
   runApp(const App());
@@ -70,19 +70,20 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment<int>(
-                    value: 0,
-                    label: Text('Footlong'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_sandwichOptions[0]),
+                  Switch(
+                    value: _selectedSandwichIndex == 1,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedSandwichIndex = value ? 1 : 0;
+                      });
+                    },
                   ),
-                  ButtonSegment<int>(
-                    value: 1,
-                    label: Text('Six-inch'),
-                  ),
+                  Text(_sandwichOptions[1]),
                 ],
-                selected: {_selectedSandwichIndex},
-                onSelectionChanged: _onSandwichSelected,
               ),
             ),
             Row(
