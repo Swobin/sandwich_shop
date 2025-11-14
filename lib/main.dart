@@ -1,4 +1,5 @@
 import 'package:sandwich_shop/views/app_styles.dart';
+import 'package:sandwich_shop/repositories/order_repository.dart';
 
 void main() {
   runApp(const App());
@@ -28,79 +29,139 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  int _quantity = 0;
-  final List<String> _sandwichOptions = ['Footlong', 'Six-inch'];
-  int _selectedSandwichIndex = 0;
-  String get _sandwichType => _sandwichOptions[_selectedSandwichIndex];
+  late final OrderRepository _orderRepository;
+  final TextEditingController _notesController = TextEditingController();
+  bool _isFootlong = true;
+  BreadType _selectedBreadType = BreadType.white;
 
-  void _increaseQuantity() {
-    if (_quantity < widget.maxQuantity) {
-      setState(() => _quantity++);
+  @override
+  void initState() {
+    super.initState();
+    _orderRepository = OrderRepository(maxQuantity: widget.maxQuantity);
+    _notesController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  VoidCallback? _getIncreaseCallback() {
+    if (_orderRepository.canIncrement) {
+      return () => setState(_orderRepository.increment);
+    }
+    return null;
+  }
+
+  VoidCallback? _getDecreaseCallback() {
+    if (_orderRepository.canDecrement) {
+      return () => setState(_orderRepository.decrement);
+    }
+    return null;
+  }
+
+  void _onSandwichTypeChanged(bool value) {
+    setState(() => _isFootlong = value);
+  }
+
+  void _onBreadTypeSelected(BreadType? value) {
+    if (value != null) {
+      setState(() => _selectedBreadType = value);
     }
   }
 
-  void _decreaseQuantity() {
-    if (_quantity > 0) {
-      setState(() => _quantity--);
+  List<DropdownMenuEntry<BreadType>> _buildDropdownEntries() {
+    List<DropdownMenuEntry<BreadType>> entries = [];
+    for (BreadType bread in BreadType.values) {
+      DropdownMenuEntry<BreadType> newEntry = DropdownMenuEntry<BreadType>(
+        value: bread,
+        label: bread.name,
+      );
+      entries.add(newEntry);
     }
-  }
-
-  void _onSandwichSelected(Set<int> selection) {
-    if (selection.isNotEmpty) {
-      setState(() {
-        _selectedSandwichIndex = selection.first;
-      });
-    }
+    return entries;
   }
 
   @override
   Widget build(BuildContext context) {
+    String sandwichType = 'footlong';
+    if (!_isFootlong) {
+      sandwichType = 'six-inch';
+    }
+
+    String noteForDisplay;
+    if (_notesController.text.isEmpty) {
+      noteForDisplay = 'No notes added.';
+    } else {
+      noteForDisplay = _notesController.text;
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sandwich Counter'),
-        centerTitle: true,
+        title: const Text(
+          'Sandwich Counter',
+          style: heading1,
+        ),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             OrderItemDisplay(
-              _quantity,
-              _sandwichType,
+              quantity: _orderRepository.quantity,
+              itemType: sandwichType,
+              breadType: _selectedBreadType,
+              orderNote: noteForDisplay,
             ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('six-inch', style: normalText),
+                Switch(
+                  value: _isFootlong,
+                  onChanged: _onSandwichTypeChanged,
+                ),
+                const Text('footlong', style: normalText),
+              ],
+            ),
+            const SizedBox(height: 10),
+            DropdownMenu<BreadType>(
+              textStyle: normalText,
+              initialSelection: _selectedBreadType,
+              onSelected: _onBreadTypeSelected,
+              dropdownMenuEntries: _buildDropdownEntries(),
+            ),
+            const SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(_sandwichOptions[0]),
-                  Switch(
-                    value: _selectedSandwichIndex == 1,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedSandwichIndex = value ? 1 : 0;
-                      });
-                    },
-                  ),
-                  Text(_sandwichOptions[1]),
-                ],
+              padding: const EdgeInsets.all(40.0),
+              child: TextField(
+                key: const Key('notes_textfield'),
+                controller: _notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Add a note (e.g., no onions)',
+                ),
               ),
             ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 StyledButton(
-                  text: 'Add',
-                  onPressed: _increaseQuantity,
+                  onPressed: _getIncreaseCallback(),
+                  icon: Icons.add,
+                  label: 'Add',
                   backgroundColor: Colors.green,
-                  enabled: _quantity < widget.maxQuantity,
                 ),
-                const SizedBox(width: 16.0),
+                const SizedBox(width: 8),
                 StyledButton(
-                  text: 'Remove',
-                  onPressed: _decreaseQuantity,
+                  onPressed: _getDecreaseCallback(),
+                  icon: Icons.remove,
+                  label: 'Remove',
                   backgroundColor: Colors.red,
-                  enabled: _quantity > 0,
                 ),
               ],
             ),
@@ -111,48 +172,62 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 }
 
+enum BreadType { white, wheat, honey }
+
 class StyledButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final IconData icon;
+  final String label;
   final Color backgroundColor;
-  final bool enabled;
 
   const StyledButton({
     super.key,
-    required this.text,
     required this.onPressed,
+    required this.icon,
+    required this.label,
     required this.backgroundColor,
-    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: enabled ? onPressed : null,
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
       ),
-      child: Text(text),
     );
   }
 }
 
 class OrderItemDisplay extends StatelessWidget {
   final int quantity;
-  final String sandwichType;
+  final String itemType;
+  final BreadType breadType;
+  final String orderNote;
 
-  const OrderItemDisplay(this.quantity, this.sandwichType, {super.key}); // Expects exactly 2 positional args
+  const OrderItemDisplay({
+    super.key,
+    required this.quantity,
+    required this.itemType,
+    required this.breadType,
+    required this.orderNote,
+  });
 
   @override
   Widget build(BuildContext context) {
     final String suffix = quantity == 1 ? ' sandwich' : ' sandwiches';
-    return Text(
-      '$quantity $sandwichType$suffix: ${'🥪' * quantity}',
-      style: Theme.of(context).textTheme.headlineMedium,
+    return Column(
+      children: [
+        Text(
+          '$quantity $itemType$suffix: ${'🥪' * quantity}',
+          style: normalText,
+        ),
+        Text('Bread: ${breadType.name}', style: normalText),
+        Text('Notes: $orderNote', style: normalText),
+      ],
     );
   }
 }
