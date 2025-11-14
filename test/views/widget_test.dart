@@ -151,7 +151,7 @@ void main() {
       const widgetToBeTested = OrderItemDisplay(
         quantity: 1,
         itemType: 'footlong',
-        breadType: BreadType.honey,
+        breadType: BreadType.wholemeal,
         orderNote: 'Lots of lettuce',
       );
       const testApp = MaterialApp(
