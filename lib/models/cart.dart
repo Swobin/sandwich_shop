@@ -18,7 +18,7 @@ class Cart {
 
   bool get isEmpty => items.isEmpty;
   int get distinctItemCount => items.length;
-  int get totalQuantity => items.fold(0, (sum, it) => sum + it.quantity);
+  int get totalQuantity => items.fold<int>(0, (sum, it) => sum + it.quantity);
 
   /// Find an existing item that matches by sandwich properties.
   int _indexOf(Sandwich sandwich) {
@@ -69,11 +69,11 @@ class Cart {
   void clear() => items.clear();
 
   /// Compute total price using the app's PricingRepository.
-  /// Uses the repository's totalPrice(...) method per sandwich entry.
+  /// Calls PricingRepository.calculatePrice(...) for each cart item.
   double totalPriceWithRepository(PricingRepository pricingRepository) {
     double total = 0.0;
     for (final it in items) {
-      total += pricingRepository.totalPrice(
+      total += pricingRepository.calculatePrice(
         quantity: it.quantity,
         isFootlong: it.sandwich.isFootlong,
       );
@@ -82,7 +82,7 @@ class Cart {
   }
 
   /// Utility: compute total price with a custom price calculator function.
-  /// This is handy for unit tests or alternate pricing strategies.
+  /// This is useful for unit tests or alternate pricing strategies.
   double totalPriceWithCalculator(double Function(int quantity, bool isFootlong) calculator) {
     double total = 0.0;
     for (final it in items) {
