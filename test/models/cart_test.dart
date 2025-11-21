@@ -4,7 +4,7 @@ import 'package:sandwich_shop/models/sandwich.dart';
 
 void main() {
   group('Cart model', () {
-    test('add, setQuantity and remove work as expected', () {
+    test('add, setQuantity, remove and clear behave correctly', () {
       final cart = Cart();
 
       final s1 = Sandwich(type: SandwichType.veggieDelight, isFootlong: true, breadType: BreadType.white);
@@ -34,6 +34,12 @@ void main() {
       expect(cart.distinctItemCount, 1);
 
       cart.setQuantity(s1, 0); // remove s1 by setting 0
+      expect(cart.isEmpty, isTrue);
+
+      // clear
+      cart.add(s1, 5);
+      expect(cart.isEmpty, isFalse);
+      cart.clear();
       expect(cart.isEmpty, isTrue);
     });
 
