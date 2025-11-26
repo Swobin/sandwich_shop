@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sandwich_shop/views/app_styles.dart';
 import 'package:sandwich_shop/models/sandwich.dart';
 import 'package:sandwich_shop/models/cart.dart';
+import 'package:sandwich_shop/repositories/pricing_repository.dart';
 
 void main() {
   runApp(const App());
@@ -33,11 +34,15 @@ class OrderScreen extends StatefulWidget {
 class _OrderScreenState extends State<OrderScreen> {
   final Cart _cart = Cart();
   final TextEditingController _notesController = TextEditingController();
+  final PricingRepository _pricingRepository = PricingRepository();
 
   SandwichType _selectedSandwichType = SandwichType.veggieDelight;
   bool _isFootlong = true;
   BreadType _selectedBreadType = BreadType.white;
   int _quantity = 1;
+
+  // NEW: store the latest user-facing confirmation message
+  String _confirmationMessage = '';
 
   @override
   void initState() {
@@ -63,18 +68,11 @@ class _OrderScreenState extends State<OrderScreen> {
 
       setState(() {
         _cart.add(sandwich, _quantity);
+
+        String sizeText = _isFootlong ? 'footlong' : 'six-inch';
+        _confirmationMessage =
+            'Added $_quantity $sizeText ${sandwich.name} sandwich(es) on ${_selectedBreadType.name} bread to cart';
       });
-
-      String sizeText;
-      if (_isFootlong) {
-        sizeText = 'footlong';
-      } else {
-        sizeText = 'six-inch';
-      }
-      String confirmationMessage =
-          'Added $_quantity $sizeText ${sandwich.name} sandwich(es) on ${_selectedBreadType.name} bread to cart';
-
-      debugPrint(confirmationMessage);
     }
   }
 
@@ -164,18 +162,40 @@ class _OrderScreenState extends State<OrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final int itemsCount = _cart.totalQuantity;
+    final double total = _cart.totalPriceWithRepository(_pricingRepository);
+    final String totalDisplay = total.toStringAsFixed(2);
+
     return Scaffold(
       appBar: AppBar(
+        // make the bar taller so the logo can be bigger
+        toolbarHeight: 72,
+        // give the leading area more horizontal space
+        leadingWidth: 72,
+        leading: SizedBox(
+          width: 64,
+          height: 64,
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
         title: const Text(
           'Sandwich Counter',
           style: heading1,
         ),
       ),
-      body: Center(
+      body: SafeArea(
         child: SingleChildScrollView(
+          // add top padding so the image is always clear of the app bar
+          padding: const EdgeInsets.only(top: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 16), // extra spacing before image
               SizedBox(
                 height: 300,
                 child: Image.asset(
@@ -230,7 +250,10 @@ class _OrderScreenState extends State<OrderScreen> {
                     onPressed: _getDecreaseCallback(),
                     icon: const Icon(Icons.remove),
                   ),
-                  Text('$_quantity', style: heading2),
+                  Text(
+                    '$_quantity',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   IconButton(
                     onPressed: _increaseQuantity,
                     icon: const Icon(Icons.add),
@@ -243,6 +266,29 @@ class _OrderScreenState extends State<OrderScreen> {
                 icon: Icons.add_shopping_cart,
                 label: 'Add to Cart',
                 backgroundColor: Colors.green,
+              ),
+              const SizedBox(height: 12),
+              // NEW: visible confirmation message for UI and tests
+              if (_confirmationMessage.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    _confirmationMessage,
+                    key: const Key('confirmation_message'),
+                    style: normalText,
+                  ),
+                ),
+              const SizedBox(height: 12),
+              // NEW: persistent cart summary (always visible)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Items: $itemsCount', key: const Key('cart_item_count'), style: normalText),
+                    Text('Total: $totalDisplay', key: const Key('cart_total_price'), style: normalText),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
             ],
