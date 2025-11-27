@@ -20,6 +20,9 @@ class Cart {
   int get distinctItemCount => items.length;
   int get totalQuantity => items.fold<int>(0, (sum, it) => sum + it.quantity);
 
+  /// Public wrapper to find an existing item index by Sandwich properties.
+  int indexOf(Sandwich sandwich) => _indexOf(sandwich);
+
   /// Find an existing item that matches by sandwich properties.
   int _indexOf(Sandwich sandwich) {
     return items.indexWhere((it) =>
@@ -82,7 +85,6 @@ class Cart {
   }
 
   /// Utility: compute total price with a custom price calculator function.
-  /// This is useful for unit tests or alternate pricing strategies.
   double totalPriceWithCalculator(double Function(int quantity, bool isFootlong) calculator) {
     double total = 0.0;
     for (final it in items) {
