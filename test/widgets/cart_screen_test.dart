@@ -13,7 +13,7 @@ void main() {
     expect(find.byKey(const Key('cart_total_price')), findsOneWidget);
     expect(find.text('Total: £0.00'), findsOneWidget);
 
-    // ensure the Add to Cart button is visible, then tap
+    // Tap Add to Cart - use stable key
     final Finder addButton = find.byKey(const Key('add_to_cart_button'));
     expect(addButton, findsOneWidget);
     await tester.ensureVisible(addButton);
@@ -29,48 +29,59 @@ void main() {
     expect(find.byKey(const Key('confirmation_message')), findsOneWidget);
   });
 
-  testWidgets('increment and decrement update quantity and total', (WidgetTester tester) async {
+  testWidgets('adding multiple items updates quantity and total; clear + undo restores', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: OrderScreen()));
     await tester.pumpAndSettle();
 
-    // add one
     final Finder addButton = find.byKey(const Key('add_to_cart_button'));
     expect(addButton, findsOneWidget);
     await tester.ensureVisible(addButton);
     await tester.pumpAndSettle();
+
+    // Add twice -> quantity 2
+    await tester.tap(addButton);
+    await tester.pumpAndSettle();
     await tester.tap(addButton);
     await tester.pumpAndSettle();
 
-    // increment (cart_inc_0)
-    final inc = find.byKey(const Key('cart_inc_0'));
-    expect(inc, findsOneWidget);
-    await tester.ensureVisible(inc);
-    await tester.pumpAndSettle();
-    await tester.tap(inc);
-    await tester.pumpAndSettle();
-
-    // now 2 items
     expect(find.text('Items: 2'), findsOneWidget);
     expect(find.text('Total: £22.00'), findsOneWidget);
 
-    // decrement (cart_dec_0)
-    final dec = find.byKey(const Key('cart_dec_0'));
-    expect(dec, findsOneWidget);
-    await tester.ensureVisible(dec);
+    // Use Clear button (summary) to remove all items
+    final Finder clearButton = find.byKey(const Key('cart_clear_button'));
+    expect(clearButton, findsOneWidget);
+    await tester.ensureVisible(clearButton);
     await tester.pumpAndSettle();
-    await tester.tap(dec);
+    await tester.tap(clearButton);
     await tester.pumpAndSettle();
 
-    // back to 1
-    expect(find.text('Items: 1'), findsOneWidget);
-    expect(find.text('Total: £11.00'), findsOneWidget);
+    // Confirm the dialog by tapping 'Clear'
+    final Finder confirmClear = find.text('Clear');
+    expect(confirmClear, findsWidgets); // may match dialog button
+    await tester.tap(confirmClear.last);
+    await tester.pumpAndSettle();
+
+    // Cart cleared -> check persistent summary on OrderScreen (not CartScreen)
+    expect(find.text('Items: 0'), findsOneWidget);
+    expect(find.text('Total: £0.00'), findsOneWidget);
+
+    // Tap Undo on SnackBar to restore
+    final Finder undo = find.text('Undo');
+    expect(undo, findsOneWidget);
+    await tester.tap(undo);
+    await tester.pumpAndSettle();
+
+    // Restored
+    expect(find.text('Items: 2'), findsOneWidget);
+    expect(find.text('Total: £22.00'), findsOneWidget);
   });
 
-  testWidgets('delete item and undo via SnackBar restores item and total', (WidgetTester tester) async {
+  testWidgets('CartScreen shows items after navigating from OrderScreen', (WidgetTester tester) async {
+    // Start on the order screen
     await tester.pumpWidget(const MaterialApp(home: OrderScreen()));
     await tester.pumpAndSettle();
 
-    // add one
+    // Add one sandwich to the cart
     final Finder addButton = find.byKey(const Key('add_to_cart_button'));
     expect(addButton, findsOneWidget);
     await tester.ensureVisible(addButton);
@@ -78,29 +89,23 @@ void main() {
     await tester.tap(addButton);
     await tester.pumpAndSettle();
 
-    // delete
-    final del = find.byKey(const Key('cart_remove_button_0'));
-    expect(del, findsOneWidget);
-    await tester.ensureVisible(del);
-    await tester.pumpAndSettle();
-    await tester.tap(del);
-    await tester.pump(); // start SnackBar animation
+    // Open CartScreen via the app bar cart button
+    final Finder viewCart = find.byKey(const Key('view_cart_button'));
+    expect(viewCart, findsOneWidget);
+    await tester.ensureVisible(viewCart);
+    await tester.tap(viewCart);
     await tester.pumpAndSettle();
 
-    // item removed
-    expect(find.text('Your cart is empty'), findsOneWidget);
-    expect(find.text('Total: £0.00'), findsOneWidget);
+    // On CartScreen: the first item row should exist
+    expect(find.byKey(const Key('cart_screen_item_0')), findsOneWidget);
 
-    // tap Undo on SnackBar
-    final undo = find.text('Undo');
-    expect(undo, findsOneWidget);
-    await tester.ensureVisible(undo);
-    await tester.pumpAndSettle();
-    await tester.tap(undo);
-    await tester.pumpAndSettle();
-
-    // restored
+    // CartScreen summary values
+    expect(find.byKey(const Key('cart_screen_item_count')), findsOneWidget);
+    expect(find.byKey(const Key('cart_screen_total_price')), findsOneWidget);
     expect(find.text('Items: 1'), findsOneWidget);
     expect(find.text('Total: £11.00'), findsOneWidget);
+
+    // Checkout button should be visible when cart has items
+    expect(find.byKey(const Key('checkout_button')), findsOneWidget);
   });
 }

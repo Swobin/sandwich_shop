@@ -17,7 +17,7 @@ class _TestHostState extends State<_TestHost> {
 
   @override
   Widget build(BuildContext context) {
-    // NOTE: MaterialApp is provided by the test; this returns a Scaffold only.
+    // MaterialApp is provided by the test harness; this returns a Scaffold only.
     return Scaffold(
       body: Column(
         children: [

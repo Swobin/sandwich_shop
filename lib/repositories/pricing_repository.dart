@@ -13,4 +13,6 @@ class PricingRepository {
   String formatPrice(double price) {
     return '£${price.toStringAsFixed(2)}';
   }
+
+  totalPrice({required int quantity, required bool isFootlong}) {}
 }
