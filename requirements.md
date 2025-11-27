@@ -128,3 +128,41 @@ Snackbar undo implementation.
 Widget tests (examples) for quantity change and delete+undo.
 Brief README note describing test keys and how to run tests.
 End of requirements.
+
+Feature: Profile screen (UI only)
+
+AI prompt for implementation:
+ - Create a Profile screen reachable from the Order screen.
+ - The Profile screen is a simple form with "Full name" and "Email" TextFields and a "Save" button.
+ - Saving does not persist data; it shows a SnackBar "Profile saved" and displays a small "Saved" message in the UI.
+ - Add a link/button at the bottom of the Order screen that navigates to Profile screen.
+ - Add widget tests that:
+   - Navigate from OrderScreen to ProfileScreen.
+   - Enter text into both fields and tap Save.
+   - Assert that the SnackBar with "Profile saved" is shown and that the "Saved" message is visible.
+
+Acceptance criteria:
+ - ProfileScreen exists at lib/views/profile_screen.dart.
+ - OrderScreen includes a navigation link with key 'profile_link_button'.
+ - Widget tests exist at test/widgets/profile_screen_test.dart and pass.
+ - No authentication or persistence is performed; UI-only feature.
+
+Notes:
+ - Use the existing app navigation (Navigator.push) and MaterialApp root for tests.
+ - Keep keys stable for tests: profile_link_button, profile_name_field, profile_email_field, profile_save_button, profile_saved_message.
+
+Feature: App-wide navigation drawer (responsive)
+
+AI prompt:
+ - Add an app-wide navigation Drawer that is accessible from all screens.
+ - Provide links for: Home, View Cart, Profile and About.
+ - Drawer should be reusable (single widget) to avoid repetition.
+ - Add widget tests that open the drawer and verify navigation (About/Profile).
+ - Add a note to make navigation responsive in future iterations (e.g., NavigationRail for wide screens).
+
+Acceptance criteria:
+ - AppDrawer widget exists at lib/views/app_drawer.dart.
+ - Drawer is attached to all primary screens and testable via keys:
+   drawer_about, drawer_profile, drawer_cart, drawer_home.
+ - Tests added at test/widgets/navigation_drawer_test.dart and pass.
+ - requirements.md updated with the prompt and acceptance criteria.

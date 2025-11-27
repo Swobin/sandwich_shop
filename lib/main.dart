@@ -4,6 +4,9 @@ import 'package:sandwich_shop/models/sandwich.dart';
 import 'package:sandwich_shop/models/cart.dart';
 import 'package:sandwich_shop/repositories/pricing_repository.dart';
 import 'package:sandwich_shop/views/cart_screen.dart';
+import 'package:sandwich_shop/views/about_screen.dart';
+import 'package:sandwich_shop/views/profile_screen.dart';
+import 'package:sandwich_shop/views/app_drawer.dart';
 
 // NEW: global messenger key so SnackBars survive navigation
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -21,6 +24,9 @@ class App extends StatelessWidget {
       scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'Sandwich Shop App',
       home: const OrderScreen(maxQuantity: 5),
+      routes: {
+        '/about': (context) => const AboutScreen(),
+      },
     );
   }
 }
@@ -180,6 +186,15 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => const ProfileScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final int itemsCount = _cart.totalQuantity;
@@ -209,12 +224,18 @@ class _OrderScreenState extends State<OrderScreen> {
         ),
         actions: [
           IconButton(
+            key: const Key('open_drawer_button'),
+            icon: const Icon(Icons.menu),
+            onPressed: () => ScaffoldMessenger.of(context).clearSnackBars() /*noop to ensure context*/,
+          ),
+          IconButton(
             key: const Key('view_cart_button'),
             icon: const Icon(Icons.shopping_cart),
             onPressed: _navigateToCartView,
           ),
         ],
       ),
+      drawer: const AppDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           // add top padding so the image is always clear of the app bar
@@ -373,6 +394,19 @@ class _OrderScreenState extends State<OrderScreen> {
                 ),
               ),
               // Cart items are shown on the CartScreen only.
+              const SizedBox(height: 12),
+              // Profile link (bottom of OrderScreen)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    key: const Key('profile_link_button'),
+                    onPressed: _navigateToProfile,
+                    child: const Text('Profile'),
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
             ],
           ),

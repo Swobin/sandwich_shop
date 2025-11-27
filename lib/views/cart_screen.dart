@@ -4,6 +4,7 @@ import 'package:sandwich_shop/models/cart.dart';
 import 'package:sandwich_shop/repositories/pricing_repository.dart';
 import 'package:sandwich_shop/views/app_styles.dart';
 import 'package:sandwich_shop/views/checkout_screen.dart';
+import 'package:sandwich_shop/views/app_drawer.dart';
 
 class CartScreen extends StatefulWidget {
   final Cart cart;
@@ -68,7 +69,15 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Cart', style: heading1),
+        actions: [
+          IconButton(
+            key: const Key('open_drawer_button_cart'),
+            icon: const Icon(Icons.menu),
+            onPressed: () {},
+          ),
+        ],
       ),
+      drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
